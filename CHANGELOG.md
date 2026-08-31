@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.3.5 (2026-08-31)
+
+修复：悬浮球「最近完成」小队卡在 TTL 边界显示 `undefined · 小队` + 黑色占位头像。
+
+- 根因：`squad-run(end)` 日志行只带 `squadId`，`squadName`/`viaSquad` 只在已被 `loadRecent` 过滤掉的 `phase:'start'` 行才有。当该次小队运行的所有 `dispatch`/`result` 行时间戳超出「最近完成」TTL 窗口（默认 30 分钟）被过滤、只剩 `end` 行单独存活时，聚合逻辑的 `headD` 退回这条 `end` 行本身，`headD.squadName || headD.viaSquad` 两者皆 `undefined`，字面拼成 `"undefined · 小队"`；`setAvatarEl` 传入 `undefined` 名称也无法取首字，退化成异常占位块。
+- 修复：`lib/client.js` 小队卡渲染改为优先按 `squadId` 查 `lastSquads`（注册表实时数据）反查真实 `name`/`emoji`，与「小队列表」分区同源；查不到才退回 `headD.squadName || headD.viaSquad || squadId || "小队"` 兜底，彻底解决名称显示 `undefined`、头像退化成异常占位块的问题。
+- 影响：仅 client 半（浏览器 UI），纯前端渲染修复，无需重启 Desktop，刷新会话即可生效。
+
 ## 1.3.4 (2026-08-31)
 
 修复：DSH 0.1.2 客户端硬依赖声明缺失——web boot `Failed to load plugins`，桌面壳只剩恢复按钮。
